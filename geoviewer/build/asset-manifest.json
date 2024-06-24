@@ -1,0 +1,17 @@
+{
+  "files": {
+    "main.css": "/geoviewer/static/css/main.f1ea96c6.chunk.css",
+    "main.js": "/geoviewer/static/js/main.1acd4a3c.chunk.js",
+    "main.js.map": "/geoviewer/static/js/main.1acd4a3c.chunk.js.map",
+    "runtime~main.js": "/geoviewer/static/js/runtime~main.63e3f051.js",
+    "runtime~main.js.map": "/geoviewer/static/js/runtime~main.63e3f051.js.map",
+    "static/css/2.05db3430.chunk.css": "/geoviewer/static/css/2.05db3430.chunk.css",
+    "static/js/2.a705dff3.chunk.js": "/geoviewer/static/js/2.a705dff3.chunk.js",
+    "static/js/2.a705dff3.chunk.js.map": "/geoviewer/static/js/2.a705dff3.chunk.js.map",
+    "index.html": "/geoviewer/index.html",
+    "precache-manifest.5a97700ae3aa8e826e21c711f3a4b17f.js": "/geoviewer/precache-manifest.5a97700ae3aa8e826e21c711f3a4b17f.js",
+    "service-worker.js": "/geoviewer/service-worker.js",
+    "static/css/2.05db3430.chunk.css.map": "/geoviewer/static/css/2.05db3430.chunk.css.map",
+    "static/css/main.f1ea96c6.chunk.css.map": "/geoviewer/static/css/main.f1ea96c6.chunk.css.map"
+  }
+}
