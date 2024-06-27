@@ -10,6 +10,7 @@ import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import { Card, CardContent } from '@mui/material';
+import { Backdrop } from '@material-ui/core';
 
 const steps = ['Date Selection', 'Choose Index Type', 'Upload Data'];
 

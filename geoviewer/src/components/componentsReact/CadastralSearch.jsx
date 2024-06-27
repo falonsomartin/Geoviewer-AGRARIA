@@ -12,7 +12,7 @@ function CadastralSearch({ onSubmit }) {
     const handleSubmit = async () => {
         setLoading(true);
         const ref = cadastralRef.replace(/\s/g, '');
-        const apiUrl = `http://localhost:5000/cadastral/${ref}`;
+        const apiUrl = `http://localhost:5005/cadastral/${ref}`;
         const queryParams = `?recintoNum=${recintoNum}`;
         try {
             const response = await fetch(`${apiUrl}${queryParams}`);
