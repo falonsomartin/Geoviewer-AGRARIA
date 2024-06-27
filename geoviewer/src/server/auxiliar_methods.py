@@ -50,7 +50,7 @@ def fetch_data_for_sensor(sensor_id, start_date, end_date):
     
 def update_sensors(start_timestamp, end_timestamp):
 
-        sensores=["0020DEFA"]
+        sensores=["0020DEFA", "0020DAF1"]
         all_sensor_data = []
         for sensor in sensores:
             current_start = start_timestamp
@@ -69,9 +69,11 @@ def update_sensors(start_timestamp, end_timestamp):
                         if(d["name"]=="Daily ET0" or d["name"]=="ET0"):
                             break;
                         for val in d["aggr"]:
+                            if(d["name"]=="Water meter 1l - Differential"):
+                                print("Aqui")
                             avg_values = d['values'][val]
                             for v,f in zip(avg_values, p[0]["dates"]):
-                                if(v != None):
+                                if v is not None or (sensores == "0020DAF1" and d["name"] != "Water meter 1l - Differential"):
                                     aux=[]
                                     aux.append(str(f))
                                     aux.append(d["name"])
@@ -1191,8 +1193,8 @@ if __name__ == "__main__":
             aux.append(v)
             et0.append(aux)
 
-    sql = "INSERT INTO sensores (sampling_date, measurement, measurement_type, measurement_value) VALUES (%s, %s, %s, %s)"
-    cur.executemany(sql, et0)
+        sql = "INSERT INTO sensores (sampling_date, measurement, measurement_type, measurement_value) VALUES (%s, %s, %s, %s)"
+        cur.executemany(sql, et0)
 
 
     cur.execute("SELECT MAX(interval_to) FROM indices")

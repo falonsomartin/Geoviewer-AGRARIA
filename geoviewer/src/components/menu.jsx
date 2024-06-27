@@ -22,7 +22,7 @@ class Menu extends React.Component {
         open: false,
         actions: [
             {
-                name: 'Sync data',
+                name: 'Sync database',
                 icon: <Icon>publish</Icon>,
                 color: "green",
                 callback: () => {
@@ -32,7 +32,17 @@ class Menu extends React.Component {
                 }
             },
             {
-                name: 'Edit data',
+                name: 'Import data',
+                icon: <Icon>import_export</Icon>,
+                color: "pink",
+                callback: () => {
+                    emitter.emit('closeAllController');
+                    emitter.emit('openImportController')
+                    this.handleClose();
+                }
+            },
+            {
+                name: 'Pick data',
                 icon: <Icon>insert_chart</Icon>,
                 color: "blue",
                 callback: () => {
@@ -69,6 +79,16 @@ class Menu extends React.Component {
                 callback: () => {
                     emitter.emit('closeAllController');
                     emitter.emit('openSearchController');
+                    this.handleClose();
+                }
+            },
+            {
+                name: 'Illness Models',
+                icon: <Icon>emoji_nature</Icon>,
+                color: "purple",
+                callback: () => {
+                    emitter.emit('closeAllController');
+                    emitter.emit('openIllnessController');
                     this.handleClose();
                 }
             },

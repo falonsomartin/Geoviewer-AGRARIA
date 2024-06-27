@@ -1,19 +1,21 @@
 /* Written by Ye Liu */
 
-import { Card, CardContent, Icon, IconButton, Slide } from '@material-ui/core';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import { Typography } from '@material-ui/core';
+import Slide from '@material-ui/core/Slide';
 import indigo from '@material-ui/core/colors/indigo';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import M from 'materialize-css';
 import React from 'react';
-import Carousel from 'react-elastic-carousel';
 
 import { ACCESS_TOKEN, SERVICE } from '@/config';
 import emitter from '@utils/events.utils';
 import { checkEmptyObject } from '@utils/method.utils';
 import request from '@utils/request.utils';
-import Plot from 'react-plotly.js';
 
 import '@styles/dataController.style.css';
+import HorizontalLinearStepperImport from '../componentsJS/StepperImport';
 
 const theme = createTheme({
     palette: {
@@ -22,6 +24,10 @@ const theme = createTheme({
         }
     }
 });
+
+
+
+
 
 const styles = {
     root: {
@@ -167,7 +173,7 @@ const styles = {
     }
 };
 
-class ModelController extends React.Component {
+class ImportController extends React.Component {
     state = {
         open: false,
         resultUnwrap: false,
@@ -590,8 +596,6 @@ class ModelController extends React.Component {
     componentDidMount() {
         // Initialize popover
         var anchorEl = document.getElementById('anchorEl');
-        //this.fetchData();
-
         // Initialize file reader
         var reader = new FileReader();
         reader.onload = (e) => {
@@ -617,7 +621,7 @@ class ModelController extends React.Component {
         });
 
         // Bind event listeners
-        this.openModelControllerListener = emitter.addListener('openModelController', () => {
+        this.openImportControllerListener = emitter.addListener('openImportController', () => {
             this.setState({
                 open: true
             });
@@ -645,86 +649,12 @@ class ModelController extends React.Component {
         });
     }
 
-    fetchData = () => {
-        fetch('http://localhost:5003/watsat', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log(data.output)
-            this.processWatsatData(data.output);
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-            emitter.emit('showSnackbar', 'error', 'Error: Something happened extracting the data.');
-        });
-    }
 
-    processWatsatData = (data) => {
-        const trace = {
-            type: 'scatter', // 'scatter' se usa para gráficos de línea
-            mode: 'lines',
-            x: data.map(item => new Date(item.fecha)),
-            y: data.map(item => item.vi), // Asume que 'vi' es el campo correcto para contenido volumétrico de agua
-            name: 'Contenido Volumétrico de Agua',
-        };
-
-        this.setState(({
-            watsatData: [trace],
-            loading: false // Ajusta el estado de carga según sea necesario
-        }));
-    }
-
-    processData = (data) => {
-        const dates = data.map(item => new Date(item.sampling_date));
-        const insectTypes = [...new Set(data.flatMap(item => Object.keys(item).filter(key => key !== 'sampling_date' && item[key] !== null)))];
-        const traces = insectTypes.map((type) => {
-            const y = data.map(item => item[type] || 0);
-            return {
-                type: 'bar',
-                name: type,
-                x: dates,
-                y,
-            };
-        });
-
-        this.setState({ traces, loading: false });
-    }
-
-    processTemperatureData = (data) => {
-        const trace = {
-            type: 'scatter', 
-            mode: 'lines',
-            x: data.map(item => new Date(item.sampling_date)),
-            y: data.map(item => item.measurement_value),
-            name: 'Temperatura del Aire HC',
-        };
-
-        this.setState(({
-            temperatureData: [trace],
-            loading: false // Mantiene el estado de carga si hay más datos por cargar
-        }));
-    }
-
-    processPrecipitationData = (data) => {
-        const trace = {
-            type: 'scatter',
-            mode: 'lines',
-            x: data.map(item => new Date(item.sampling_date)),
-            y: data.map(item => item.measurement_value),
-            name: 'Precipitación'
-        };
-
-        this.setState({ precipitationData: [trace], loading: false });
-    }
 
 
     componentWillUnmount() {
         // Remove event listeners
-        emitter.removeListener(this.openModelControllerListener);
+        emitter.removeListener(this.openImportControllerListener);
         emitter.removeListener(this.closeAllControllerListener);
         emitter.removeListener(this.addPointListener);
         emitter.removeListener(this.updatePointListener);
@@ -736,22 +666,17 @@ class ModelController extends React.Component {
         elems.map(elem => elem.destory());
     }
 
-    render() {
-        const { watsatData, layoutWatsat } = this.state;
-        
+    render() {        
         return (
             <ThemeProvider theme={theme}>
                 <Slide direction="left" in={this.state.open}>
                     <Card style={styles.root}>
                         {/* Card header */}
                         <CardContent style={styles.header}>
-                        <IconButton style={styles.closeBtn} aria-label="Close" onClick={this.handleCloseClick}>
-                                <Icon fontSize="inherit">chevron_right</Icon>
-                            </IconButton>
+                        <Typography variant="h5" className={styles.title}>Data Importer</Typography>
 
-                        <Carousel enableSwipe={false}>
-                        <Plot data={watsatData} layout={layoutWatsat} />
-                        </Carousel>
+
+<HorizontalLinearStepperImport/>
 
                         </CardContent>
                     </Card>
@@ -761,4 +686,4 @@ class ModelController extends React.Component {
     }
 }
 
-export default ModelController;
+export default ImportController;

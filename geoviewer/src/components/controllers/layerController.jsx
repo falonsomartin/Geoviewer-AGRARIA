@@ -7,6 +7,7 @@ import { MuiThemeProvider, createTheme } from '@material-ui/core/styles';
 import React from 'react';
 import Sortable from 'sortablejs';
 import Slider from '@material-ui/core/Slider';
+import datasets from '@utils/dataset.utils';
 import emitter from '@utils/events.utils';
 
 const theme = createTheme({
@@ -210,7 +211,7 @@ class LayerController extends React.Component {
     }
 
     render() {
-        console.log(this.state.datasets)
+        console.log(datasets)
         return (
             <MuiThemeProvider theme={theme}>
                 <Slide direction="left" in={this.state.open}>  
@@ -218,6 +219,10 @@ class LayerController extends React.Component {
                     <Card style={styles.root}>
                         {/* Card header */}
                         <CardContent style={styles.header}>
+                        <IconButton style={styles.closeBtn} aria-label="Close" onClick={this.handleCloseClick}>
+                                <Icon fontSize="inherit">chevron_right</Icon>
+                            </IconButton>
+
                             <Typography gutterBottom variant="h5" component="h2">Layers</Typography>
                             <Typography variant="body2" color="textSecondary">Download and display layers</Typography>
                             <Tooltip title="Hexagons" aria-label="Hexagons" enterDelay={200}>
@@ -264,7 +269,7 @@ class LayerController extends React.Component {
                                             <InputLabel style={styles.placeholder}>Choose layers</InputLabel>
                                     )}
                                 >
-                                    {Object.keys(this.state.datasets).map(item => (
+                                    {Object.keys(datasets).map(item => (
                                         <MenuItem key={item} value={item}>
                                             <ListItemText primary={item} />
                                         </MenuItem>

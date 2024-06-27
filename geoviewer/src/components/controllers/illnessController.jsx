@@ -167,7 +167,7 @@ const styles = {
     }
 };
 
-class ModelController extends React.Component {
+class IllnessController extends React.Component {
     state = {
         open: false,
         resultUnwrap: false,
@@ -202,12 +202,12 @@ class ModelController extends React.Component {
             yaxis: { title: 'Precipitación (mm)' }
         },
         layoutWatsat: {
-            title: 'Modelo Watsat',
+            title: 'Xanthomonas',
             xaxis: {
                 title: 'Fecha',
                 type: 'date'
             },
-            yaxis: { title: 'Contenido Volumétrico de Agua' }
+            yaxis: { title: 'Indice de propagacion' }
         },
         layout: {
             barmode: 'stack',
@@ -590,7 +590,7 @@ class ModelController extends React.Component {
     componentDidMount() {
         // Initialize popover
         var anchorEl = document.getElementById('anchorEl');
-        //this.fetchData();
+        this.fetchData();
 
         // Initialize file reader
         var reader = new FileReader();
@@ -617,7 +617,7 @@ class ModelController extends React.Component {
         });
 
         // Bind event listeners
-        this.openModelControllerListener = emitter.addListener('openModelController', () => {
+        this.openIllnessControllerListener = emitter.addListener('openIllnessController', () => {
             this.setState({
                 open: true
             });
@@ -646,7 +646,7 @@ class ModelController extends React.Component {
     }
 
     fetchData = () => {
-        fetch('http://localhost:5003/watsat', {
+        fetch('http://localhost:5003/xanthomonas', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -664,12 +664,13 @@ class ModelController extends React.Component {
     }
 
     processWatsatData = (data) => {
+        console.log(data)
         const trace = {
             type: 'scatter', // 'scatter' se usa para gráficos de línea
             mode: 'lines',
-            x: data.map(item => new Date(item.fecha)),
-            y: data.map(item => item.vi), // Asume que 'vi' es el campo correcto para contenido volumétrico de agua
-            name: 'Contenido Volumétrico de Agua',
+            x: data.map(item => new Date(item.sampling_date)),
+            y: data.map(item => item.xanthomonas_indice_de_propagacion_prc), // Asume que 'vi' es el campo correcto para contenido volumétrico de agua
+            name: 'Xanthomonas',
         };
 
         this.setState(({
@@ -724,7 +725,7 @@ class ModelController extends React.Component {
 
     componentWillUnmount() {
         // Remove event listeners
-        emitter.removeListener(this.openModelControllerListener);
+        emitter.removeListener(this.openIllnessControllerListener);
         emitter.removeListener(this.closeAllControllerListener);
         emitter.removeListener(this.addPointListener);
         emitter.removeListener(this.updatePointListener);
@@ -761,4 +762,4 @@ class ModelController extends React.Component {
     }
 }
 
-export default ModelController;
+export default IllnessController;

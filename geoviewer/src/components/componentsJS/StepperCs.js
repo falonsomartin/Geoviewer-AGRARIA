@@ -153,10 +153,13 @@ export default function HorizontalLinearStepperCS({onSubmit}) {
       <div>
         {activeStep === steps.length ? (
           <React.Fragment>
+                        <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2, alignItems: 'center', justifyContent: 'center' }}>
+
             <Typography sx={{ mt: 2, mb: 1 }}>
               All steps completed - you're finished
             </Typography>
             <Button onClick={handleReset}>Reset</Button>
+            </Box>
           </React.Fragment>
         ) : (
           <React.Fragment>

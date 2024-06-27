@@ -12,10 +12,12 @@ import Feature from '@components/feature';
 import StyleController from '@components/controllers/styleController';
 import LayerController from '@components/controllers/layerController';
 import DataController from '@components/controllers/dataController';
+import ImportController from '@components/controllers/importController';
 import Canvas from '@components/canvas';
 import Popup from '@components/popup';
 import '@styles/materialize.min.style.css';
 import ModelController from '../components/controllers/modelController';
+import IllnessController from '../components/controllers/illnessController';
 import SyncController from '../components/controllers/syncController';
 import BandController from '../components/controllers/bandController';
 import SearchController from '../components/controllers/searchContoller';
@@ -33,9 +35,11 @@ class Main extends React.Component {
                     <Feature />
                     <StyleController />
                     <LayerController />
+                    <IllnessController/>
                     <ModelController />
                     <SearchController/>
                     <DataController />
+                    <ImportController/>
                     <SyncController />
                     <BandController />
                     <Popup />

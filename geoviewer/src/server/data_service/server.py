@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import requests
 from ria import RIA
 import time
+from sqlalchemy import create_engine
 
 from requests.auth import AuthBase
 from Crypto.Hash import HMAC
@@ -53,7 +54,7 @@ def fetch_data_for_sensor(sensor_id, start_date, end_date):
     
 def update_sensors(start_timestamp, end_timestamp):
 
-        sensores=["0020DEFA"]
+        sensores=["0020DEFA", "0020DAF1"]
         all_sensor_data = []
         for sensor in sensores:
             current_start = start_timestamp
@@ -324,6 +325,7 @@ def handle_data_request():
         rows = cur.fetchall()
         columns = [desc[0] for desc in cur.description]
         df = pd.DataFrame(rows, columns=columns)
+        df.to_excel('./result.xlsx')
         result = df.to_json(orient='records')
         
         return jsonify({"success": True, "data": result}), 200
@@ -367,6 +369,22 @@ def precipitaciones():
     except subprocess.CalledProcessError as e:
         return jsonify({"success": False, "error": e.output.decode("utf-8")}), 500
     
+    
+@app.route('/xanthomonas', methods=['GET'])
+def xanthomonas():
+    try:
+        conn = psycopg2.connect(dbname="tepro", user="postgres", password="Evenor2510Tech")
+        cur = conn.cursor()  
+        query = "SELECT sampling_date, xanthomonas_indice_de_propagacion_prc FROM xanthomonas"
+
+        df_p = pd.read_sql(query, conn)
+        
+        df_json_str = df_p.to_json(orient='records')
+        df_json = json.loads(df_json_str)
+           
+        return jsonify({"success": True, "output": df_json}), 200
+    except subprocess.CalledProcessError as e:
+        return jsonify({"success": False, "error": e.output.decode("utf-8")}), 500
 
 @app.route('/temperatura', methods=['GET'])
 def temperatura():
@@ -404,13 +422,83 @@ def get_data_types(equipment_type):
     finally:
         cur.close()
         conn.close()
+
+from flask import request, jsonify
+import pandas as pd
+import io
+
+@app.route('/api/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files or 'table' not in request.form:
+        return jsonify({"error": "No file or table name provided"}), 400
+
+    file = request.files['file']
+    table_name = request.form['table']
+
+    try:
+        # Leer el archivo dependiendo de su extensión
+        if file.filename.endswith('.csv'):
+            df = pd.read_csv(file, sep=";")
+        elif file.filename.endswith('.xlsx'):
+            df = pd.read_excel(file)
+        else:
+            return jsonify({"error": "Unsupported file format"}), 400
+
+        # Usar SQLAlchemy para la conexión a PostgreSQL
+        engine = create_engine('postgresql://postgres:Evenor2510Tech@localhost:5432/tepro')
         
+        # Validar que las columnas del archivo coincidan con las de la tabla seleccionada
+        conn = psycopg2.connect(dbname="tepro", user="postgres", password="Evenor2510Tech")
+        cur = conn.cursor()
+        cur.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table_name}'")
+        columns = [row[0] for row in cur.fetchall()]
+        if not all(item in df.columns for item in columns):
+            return jsonify({"error": "File columns do not match table columns"}), 400
+
+        # Insertar los datos en la base de datos
+        df.to_sql(name=table_name, con=engine, if_exists='append', index=False)
+        return jsonify({"success": "Data uploaded successfully"}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 500
+      
+@app.route('/api/tables', methods=['GET'])
+def list_tables():
+    try:
+        conn = psycopg2.connect(dbname="tepro", user="postgres", password="Evenor2510Tech")
+        cur = conn.cursor()
+        cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'")
+        tables = cur.fetchall()
+        return jsonify([table[0] for table in tables]), 200
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
 @app.route('/watsat', methods=['GET'])
 def watsat():
     try:
         conn = psycopg2.connect(dbname="tepro", user="postgres", password="Evenor2510Tech")
         cur = conn.cursor()   
-        cur.execute("SELECT sampling_date FROM sensores WHERE measurement='Precipitation' order by measurement_value desc, sampling_date")
+        cur.execute('''SELECT fecha
+FROM (
+    SELECT DATE_TRUNC('day', sampling_date) AS fecha, 
+           SUM(
+               CASE 
+                   WHEN measurement = 'Precipitation' THEN measurement_value * 1
+                   WHEN measurement = 'Water meter 1l - Differential' THEN (measurement_value / 135000)
+                   ELSE 0 -- Asegúrate de manejar cualquier otro tipo de medición que pudiera existir
+               END
+           ) AS suma_wt
+    FROM sensores
+    WHERE measurement IN ('Water meter 1l - Differential', 'Precipitation')
+    GROUP BY fecha
+) AS resultados
+WHERE suma_wt <= 80
+ORDER BY suma_wt DESC;
+''')
         result = cur.fetchone()
         fecha_inicio = result[0].strftime('%Y-%m-%d')
         cur.execute("SELECT max(extraction_date) from metadata")
@@ -419,9 +507,14 @@ def watsat():
 
         # Definir la consulta SQL
         query = '''
-        SELECT DATE_TRUNC('day', sampling_date) as fecha, SUM(measurement_value) as precipitacion_diaria
+        SELECT DATE_TRUNC('day', sampling_date) as fecha, SUM( CASE 
+               WHEN measurement = 'Precipitation' THEN measurement_value * 1
+               WHEN measurement = 'Water meter 1l - Differential' THEN (measurement_value / 135000) 
+               ELSE 0 -- Asegúrate de manejar cualquier otro tipo de medición que pudiera existir
+           END
+       ) AS wt_diaria
         FROM sensores
-        WHERE measurement = 'Precipitation' AND (sampling_date >= '{}' and sampling_date<='{}')
+        WHERE measurement IN ('Water meter 1l - Differential', 'Precipitation') AND (sampling_date >= '{}' and sampling_date<='{}')
         GROUP BY fecha
         ORDER BY fecha ASC
         '''.format(fecha_inicio, fecha_fin)
@@ -442,9 +535,47 @@ def watsat():
         df_completo = df_fechas.merge(df_sum_precip, on='fecha', how='left')
 
         # Llenar los valores nulos de precipitación con 0.0
-        df_completo['precipitacion_diaria'].fillna(0.0, inplace=True)
+        ria = RIA()
+        print(df_completo[df_completo['wt_diaria'].isna()])
+        # Iterar sobre las fechas donde los valores de 'wt_diaria' son nulos
+        for index, row in df_completo[df_completo['wt_diaria'].isna()].iterrows():
+            if index==90:
+                continue
+            print(index)
+            fecha = row['fecha']
+            print(fecha)
+            iso_format_date = fecha.strftime('%Y-%m-%d')  # Convertir a formato ISO 8601 (YYYY-MM-DD)
+
+            # Obtener datos de la API o biblioteca ria
+            estaciones = ria.obtener_datos_diarios_periodo_con_et0(41, 22,iso_format_date,iso_format_date)
+            for e in estaciones:
+            # Suponiendo que datos_ria devuelve un DataFrame o un valor que podemos utilizar
+                df_completo.at[index, 'wt_diaria_ria'] = e['precipitacion']  # Asumiendo que hay una columna 'precipitacion'
+
+            # Almacenar el valor obtenido en el DataFrame de ria
+        # Rellenar los valores nulos en 'wt_diaria' con los valores de ria
+        df_completo['wt_diaria'] = df_completo['wt_diaria'].fillna(df_completo['wt_diaria_ria'])
+        
+        for index, row in df_completo[df_completo['wt_diaria']==0.0].iterrows():
+            if index==90:
+                continue
+            print(index)
+            fecha = row['fecha']
+            print(fecha)
+            iso_format_date = fecha.strftime('%Y-%m-%d')  # Convertir a formato ISO 8601 (YYYY-MM-DD)
+
+            # Obtener datos de la API o biblioteca ria
+            estaciones = ria.obtener_datos_diarios_periodo_con_et0(41, 22,iso_format_date,iso_format_date)
+            for e in estaciones:
+            # Suponiendo que datos_ria devuelve un DataFrame o un valor que podemos utilizar
+                df_completo.at[index, 'wt_diaria_ria__'] = e['precipitacion']  # Asumiendo que hay una columna 'precipitacion'
+
+            # Almacenar el valor obtenido en el DataFrame de ria
+        # Rellenar los valores nulos en 'wt_diaria' con los valores de ria
+        df_completo['wt_diaria'] = df_completo['wt_diaria'].fillna(df_completo['wt_diaria_ria__'])
         # Crear la columna con el sumatorio acumulado
-        df_completo['precipitacion_acumulada'] = df_completo['precipitacion_diaria'].cumsum()
+        df_completo['wt_acumulada'] = df_completo['wt_diaria'].cumsum()
+        print(df_completo[df_completo['wt_diaria'].isna()])
         print(df_completo)
 
         query = '''
@@ -491,12 +622,33 @@ def watsat():
         print(df_et0_completo)
         aa = [
             (elemento1 / elemento2 if elemento2 != 0 else 0)
-            for elemento1, elemento2 in zip(df_completo['precipitacion_acumulada'].tolist(), df_et0_completo['et0'].tolist())
+            for elemento1, elemento2 in zip(df_completo['wt_acumulada'].tolist(), df_et0_completo['et0'].tolist())
         ]
         print(aa)
-        df_completo['aw'] = aa  # Calcular AW y limitar su rango a [0, 1]
-        df_completo['aw'] = (df_completo['aw']).clip(0,1)
-        df_completo['cws'] = 0.5 + 0.5 * df_completo['aw']  # Calcular Cws
+        
+        
+        cur.execute('''
+        SELECT
+   CASE
+        WHEN SUM(CASE WHEN measurement = 'ET0' THEN measurement_value ELSE 0 END) = 0 THEN NULL
+        ELSE
+            SUM(
+                CASE 
+                    WHEN measurement = 'Precipitation' THEN measurement_value * 1
+                    WHEN measurement = 'Water meter 1l - Differential' THEN (measurement_value / 135000)
+                    ELSE 0
+                END
+            ) / SUM(CASE WHEN measurement = 'ET0' THEN measurement_value ELSE 0 END)
+    END AS aw_ratio
+FROM sensores
+WHERE sampling_date BETWEEN DATE '{}' - INTERVAL '2 months' AND DATE '{}'
+        '''.format(fecha_inicio, fecha_inicio))
+        result = cur.fetchone()
+        aw = result[0]
+        df_completo['aw'] = float(aw)  # Calcular AW y limitar su rango a [0, 1]
+        print(df_completo['aw'])
+        df_completo['cws'] = 0.5 + 0.5 * float(aw)  # Calcular Cws
+        df_completo['cws'] = df_completo['cws'].clip(0.5,1)
         df_indices['fecha'] = pd.to_datetime(df_indices['interval_to']).dt.date
         df_indices = df_indices.loc[pd.to_datetime(df_indices['fecha']) >= pd.to_datetime(df_completo['fecha'].min())]  # Filtrar fechas posteriores al inicio de las precipitaciones
         # Convertir la columna 'fecha' de df_et0 a tipo date
@@ -507,28 +659,46 @@ def watsat():
         df_indices.rename(columns={'interval_to':'fecha'},inplace=True)
         df_merged = pd.merge(df_completo, df_indices, on='fecha')
         
-        tr_aaa=[et0 * kc_veg * kc_soil * cws for et0, cws in zip(df_et0_completo['et0'].tolist(), df_merged['cws'].tolist())]
+        df_indices['fvc'] = (df_indices['ndvi_B0_mean'] - df_indices['ndvi_B0_min']) / (df_indices['ndvi_B0_max'] - df_indices['ndvi_B0_min'])
+        df_indices['fvc']=df_indices['fvc'].clip(0.2,1)
+
+        print(df_indices['fvc'])
+        tr_aaa=[et0 * kc_veg * fvc * cws for et0, cws, fvc in zip(df_et0_completo['et0'].tolist(), df_merged['cws'].tolist(), df_indices['fvc'].tolist())]
         df_merged['tr_a'] = tr_aaa
         
-        ev_aaa=[et0 * (1 - kc_veg) * kc_soil * aw for et0, aw in zip(df_et0_completo['et0'].tolist(), df_merged['aw'].tolist())]
+        ev_aaa=[et0 * (1 - fvc) * kc_soil * aw for et0, aw, fvc in zip(df_et0_completo['et0'].tolist(), df_merged['aw'].tolist(), df_indices['fvc'].tolist())]
         df_merged['ev_a'] = ev_aaa
         
-        df_merged['precip_mm'] = df_merged['precipitacion_diaria']  # Renombrar columna para que sea más claro
+        df_merged['wt'] = df_merged['wt_diaria']  # Renombrar columna para que sea más claro
         df_merged['eta_mm'] = df_merged['tr_a'] + df_merged['ev_a']  # Sumar TrA y EvA para obtener la ETa
         df_merged['dpp_mm'] = 0  # Assumir que no hay deep percolation o runoff (Dpp=0)
-        df_merged['vi'] = 0  # Assumir que el volumen de agua en el suelo al inicio es 0
+        df_merged['vi'] = 80  # Assumir que el volumen de agua en el suelo al inicio es 80
         for i in range(len(df_merged)):
             if i == 0:
                 continue  # La primera fila no tiene un valor anterior de 'vi' para hacer la suma
+            print(df_merged.at[i, 'fecha'])
+            print(df_merged)
             prev_vi = df_merged.loc[i-1, 'vi']
-            precip_mm = df_merged.loc[i, 'precip_mm']
+            wt = df_merged.loc[i, 'wt']
             eta_mm = df_merged.loc[i, 'eta_mm']
             dpp_mm = df_merged.loc[i, 'dpp_mm']
-            vi = prev_vi + precip_mm - eta_mm - dpp_mm
-            df_merged.loc[i, 'vi'] = max(0, vi)  # Limitar el volumen de agua en el suelo a valores no negativos     
-        print(df_merged)          
+            dpp__=0
+            if(wt-80<=0):
+                dpp__=0
+            else:
+                dpp__=wt-80
+            vi = (prev_vi + wt - abs(eta_mm) - (dpp__))
+            if(vi>=80):
+                df_merged.at[i, 'vi'] = 80
+            elif(vi<=0):   
+                df_merged.at[i, 'vi'] = 0 
+            else:  
+                df_merged.at[i, 'vi'] = vi 
+        print(df_merged)         
         df_json_str = df_merged.to_json(orient='records')
         df_json = json.loads(df_json_str)
+        print(fecha_inicio)
+        print(fecha_fin)
             
         return jsonify({"success": True, "output": df_json}), 200
     except subprocess.CalledProcessError as e:

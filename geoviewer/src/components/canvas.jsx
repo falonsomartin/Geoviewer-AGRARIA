@@ -8,7 +8,7 @@ import React from 'react';
 import geocoder from '@plugins/geocoder.plugin';
 import marker from '@plugins/marker.plugin';
 import Minimap from '@plugins/minimap.plugin';
-
+import { buildPolygonStyle } from '../utils/map.utils';
 import { ACCESS_TOKEN } from '@/config';
 import '@styles/map.style.css';
 import emitter from '@utils/events.utils';
@@ -324,10 +324,9 @@ class Canvas extends React.Component {
                 'id': id + '-boundary', // Se utiliza el id proporcionado para generar un identificador único para la capa
                 'type': 'fill',
                 'source': id,
-                'paint': {
-                    'fill-color': '#888888',
-                    'fill-opacity': 0.4
-                },
+                'paint': 
+                    buildPolygonStyle(id)
+                ,
                 'filter': ['==', '$type', 'Polygon']
             });
 
