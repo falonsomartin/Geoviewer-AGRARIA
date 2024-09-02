@@ -220,8 +220,10 @@ class BandController extends React.Component {
                 body: formData
             })
             .then(response => response.json())
-        //  .then(result => this.handleDataSubmit(result))
-            .catch(error => console.error('Error:', error));
+            .then(result => {console.log(result.output)
+              this.setState({url: result.output})
+            emitter.emit('moveURL', this.state.url)     })
+              .catch(error => console.error('Error:', error));
         } else if (data[1]) {
             const formData = new FormData();
             formData.append('startDate', data[0].startDate);

@@ -104,7 +104,7 @@ class LayerController extends React.Component {
 
             // Display snackbar
             emitter.emit('showSnackbar', 'default', `Downloading dataset '${id}'.`);
-            emitter.emit('displayDataset', id, this.state.datasets[id].data, '#f08');
+            emitter.emit('displayDataset', id, datasets[id].data, '#f08');
             emitter.emit('showSnackbar', 'success', `Dataset '${id}' downloaded successfully.`);
                 
             
@@ -315,7 +315,7 @@ class LayerController extends React.Component {
                                     <InputLabel style={styles.placeholder}>Choose layers</InputLabel>
                             )}
                         >
-                            {Object.keys(this.state.datasets).map(item => (
+                            {Object.keys(datasets).map(item => (
                                 <MenuItem key={item} value={item}>
                                     <ListItemText primary={item} />
                                 </MenuItem>

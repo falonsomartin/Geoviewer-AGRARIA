@@ -23,6 +23,47 @@ const styles = {
         position: 'fixed',
         top: 64,
         bottom: 0
+    },
+    legend: {
+        position: 'absolute',
+        bottom: '30px',
+        left: '10px',
+        background: 'white',
+        padding: '10px',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '12px',
+        lineHeight: '18px',
+        color: '#333',
+        borderRadius: '3px',
+        boxShadow: '0 0 15px rgba(0, 0, 0, 0.2)'
+    },
+    legendTitle: {
+        margin: '0 0 10px',
+        fontSize: '14px'
+    },
+    legendItem: {
+        display: 'flex',
+        alignItems: 'center',
+        marginBottom: '5px'
+    },
+    legendColorBox: {
+        width: '20px',
+        height: '10px',
+        display: 'inline-block',
+        marginRight: '5px'
+    },
+    spectralLegend: {
+        position: 'absolute',
+        bottom: '30px',
+        left: '10px',
+        background: 'white',
+        padding: '10px',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '12px',
+        lineHeight: '18px',
+        color: '#333',
+        borderRadius: '3px',
+        boxShadow: '0 0 15px rgba(0, 0, 0, 0.2)'
     }
 };
 
@@ -37,7 +78,10 @@ class Canvas extends React.Component {
             popup: null,
             gettingPoint: null,
             tempId: null,
-            styleCode: Object.values(mapStyles)[0].substring(16)
+            styleCode: Object.values(mapStyles)[0].substring(16),
+            legendVisible: false, // Estado para controlar la visibilidad de la leyenda
+            spectralLegendVisible: false // Estado para la leyenda de índices espectrales
+
         }    
     }
     
@@ -218,9 +262,9 @@ class Canvas extends React.Component {
         });
 
         // Add map controls
-        const minimap = new Minimap({
-            center: map.getCenter()
-        });
+        //const minimap = new Minimap({
+        //    center: map.getCenter()
+        //});
 
         map.addControl(new MapboxGeocoder({
             accessToken: mapboxgl.accessToken,
@@ -237,7 +281,7 @@ class Canvas extends React.Component {
             trafficSource: new RegExp('/*/')
         }), 'top-left');
         map.addControl(draw, 'top-left');
-        map.addControl(minimap, 'bottom-left');
+        //map.addControl(minimap, 'bottom-left');
 
         // Initialize popup
         const popup = new mapboxgl.Popup({
@@ -296,25 +340,29 @@ class Canvas extends React.Component {
             this.state.map.setStyle(mapStyles[e]);
 
             // Set minimap style
-            const minimap = new Minimap({
-                center: this.state.map.getCenter(),
-                style: Object.values(mapStyles)[1]
-            });
-            this.state.map.removeControl(this.state.minimap);
-            this.state.map.addControl(minimap, 'bottom-left');
-            console.log(mapStyles[e])
-            this.setState({
-                minimap: minimap,
-                styleCode: mapStyles[e].substring(16)
-            });
+            //const minimap = new Minimap({
+            //    center: this.state.map.getCenter(),
+            //    style: Object.values(mapStyles)[1]
+            //});
+            //this.state.map.removeControl(this.state.minimap);
+            //this.state.map.addControl(minimap, 'bottom-left');
+            //console.log(mapStyles[e])
+            //this.setState({
+            //    minimap: minimap,
+            //    styleCode: mapStyles[e].substring(16)
+            //});
         });
 
         this.displayDatasetListener = emitter.addListener('displayDataset', (id, geometry) => {
+
+            this.state.map.removeLayer('predictedSOC');
 
             if (this.state.map.getSource(id)) {
                 this.state.map.removeSource(id);
             }
              
+            console.log(id)
+
             map.addSource(id, {
                 'type': 'geojson',
                 'data': geometry
@@ -341,7 +389,10 @@ class Canvas extends React.Component {
                 'filter': ['==', '$type', 'Point']
             });
 
-            this.flyToGeometry(map, geometry)
+            this.flyToGeometry(map, geometry);
+            this.setState({ spectralLegendVisible: false });
+
+            this.setState({ legendVisible: true });
                
         });
 
@@ -442,7 +493,7 @@ class Canvas extends React.Component {
             map: map,
             draw: draw,
             style: Object.values(mapStyles)[1],
-            minimap: minimap,
+            //minimap: minimap,
             popup: popup
         });
 
@@ -459,7 +510,12 @@ class Canvas extends React.Component {
 
         console.log('Received moved data:', movedURL);
         // Aquí puedes hacer algo con los datos, como establecer el estado
-        this.removeAllLayer();
+        //this.removeAllLayer();
+        this.state.map.removeLayer('predictedSOC');
+        this.state.map.removeLayer('Capa_Cuadrada.geojson');
+        this.state.map.removeLayer('Capa_Rectangular.geojson');
+
+
         this.setState({ url: movedURL });
         this.state.map.addLayer({
             'id': 'predictedSOC',
@@ -475,6 +531,11 @@ class Canvas extends React.Component {
                 'raster-opacity': 0.8  // Opacidad de la capa de ráster
             }
         });
+
+        this.setState({ legendVisible: false });
+
+        this.setState({ spectralLegendVisible: true });
+
     }
 
     
@@ -607,11 +668,84 @@ class Canvas extends React.Component {
 
 
     render() {
-        console.log(this.state.map)
         return (
-            <div id="map" style={styles.root} ref={this.mapContainer}></div>
+            <div>
+                <div id="map" style={styles.root} ref={this.mapContainer}></div>
+                {this.state.legendVisible && (
+                    <div style={styles.legend}>
+                        <h4 style={styles.legendTitle}>Rendimiento (kg/Ha)</h4>
+                        <div style={styles.legendItem}>
+                            <span style={{ ...styles.legendColorBox, backgroundColor: '#B22222' }}></span>0 - 50,000
+                        </div>
+                        <div style={styles.legendItem}>
+                            <span style={{ ...styles.legendColorBox, backgroundColor: '#ff8c1a' }}></span>50,001 - 60,000
+                        </div>
+                        <div style={styles.legendItem}>
+                            <span style={{ ...styles.legendColorBox, backgroundColor: '#ffd700' }}></span>60,001 - 70,000
+                        </div>
+                        <div style={styles.legendItem}>
+                            <span style={{ ...styles.legendColorBox, backgroundColor: '#cfff04' }}></span>70,001 - 80,000
+                        </div>
+                        <div style={styles.legendItem}>
+                            <span style={{ ...styles.legendColorBox, backgroundColor: '#9acd32' }}></span>80,001 - 90,000
+                        </div>
+                        <div style={styles.legendItem}>
+                            <span style={{ ...styles.legendColorBox, backgroundColor: '#6b8e23' }}></span>90,001 - 100,000
+                        </div>
+                        <div style={styles.legendItem}>
+                            <span style={{ ...styles.legendColorBox, backgroundColor: '#40ff00' }}></span>100,001 - 110,000
+                        </div>
+                        <div style={styles.legendItem}>
+                            <span style={{ ...styles.legendColorBox, backgroundColor: '#00ff00' }}></span>110,001 - 120,000
+                        </div>
+                        <div style={styles.legendItem}>
+                            <span style={{ ...styles.legendColorBox, backgroundColor: '#008000' }}></span>120,001+
+                        </div>
+                    </div>
+                )}
+                {this.state.spectralLegendVisible && (
+                    <div style={styles.spectralLegend}>
+                        <h4 style={styles.legendTitle}>Índice Espectral</h4>
+                        <div style={styles.legendItem}>
+                            <span style={{ ...styles.legendColorBox, backgroundColor: '#a50026' }}></span>-1.0 a -0.8
+                        </div>
+                        <div style={styles.legendItem}>
+                            <span style={{ ...styles.legendColorBox, backgroundColor: '#d73027' }}></span>-0.8 a -0.6
+                        </div>
+                        <div style={styles.legendItem}>
+                            <span style={{ ...styles.legendColorBox, backgroundColor: '#f46d43' }}></span>-0.6 a -0.4
+                        </div>
+                        <div style={styles.legendItem}>
+                            <span style={{ ...styles.legendColorBox, backgroundColor: '#fdae61' }}></span>-0.4 a -0.2
+                        </div>
+                        <div style={styles.legendItem}>
+                            <span style={{ ...styles.legendColorBox, backgroundColor: '#fee08b' }}></span>-0.2 a 0.0
+                        </div>
+                        <div style={styles.legendItem}>
+                            <span style={{ ...styles.legendColorBox, backgroundColor: '#ffffbf' }}></span>0.0 a 0.2
+                        </div>
+                        <div style={styles.legendItem}>
+                            <span style={{ ...styles.legendColorBox, backgroundColor: '#d9ef8b' }}></span>0.2 a 0.4
+                        </div>
+                        <div style={styles.legendItem}>
+                            <span style={{ ...styles.legendColorBox, backgroundColor: '#a6d96a' }}></span>0.4 a 0.6
+                        </div>
+                        <div style={styles.legendItem}>
+                            <span style={{ ...styles.legendColorBox, backgroundColor: '#66bd63' }}></span>0.6 a 0.8
+                        </div>
+                        <div style={styles.legendItem}>
+                            <span style={{ ...styles.legendColorBox, backgroundColor: '#1a9850' }}></span>0.8 a 1.0
+                        </div>
+                        <div style={styles.legendItem}>
+                            <span style={{ ...styles.legendColorBox, backgroundColor: '#006837' }}></span>1.0
+                        </div>
+                    </div>
+                )}
+            </div>
         );
     }
+    
+    
 }
 
 export default Canvas;

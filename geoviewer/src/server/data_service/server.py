@@ -132,7 +132,7 @@ def run_script():
         apiURI = 'https://api.fieldclimate.com/v2'
         publicKey = '7b831b6ed349787c3f0e69bb63206abd74bedf3aeea5cf41'
         privateKey = '7266006455f0f4ef0cd9a160e6f02e74c5fcc0590c4fe7e1'
-        conn = psycopg2.connect(dbname="tepro", user="postgres", password="Evenor2510Tech")
+        conn = psycopg2.connect(dbname="tepro", user="postgres", password="postgres")
         cur = conn.cursor()   
 
         cur.execute("SELECT extraction_date FROM metadata ORDER BY extraction_date DESC LIMIT 1")
@@ -295,7 +295,7 @@ def run_script():
 
 @app.route('/data', methods=['POST'])
 def handle_data_request():
-    conn = psycopg2.connect(dbname="tepro", user="postgres", password="Evenor2510Tech")
+    conn = psycopg2.connect(dbname="tepro", user="postgres", password="postgres")
     cur = conn.cursor()  
     # Extraemos los datos enviados por el cliente
     data = request.get_json()
@@ -339,7 +339,7 @@ def handle_data_request():
 @app.route('/camaras', methods=['GET'])
 def camaras():
     try:
-        conn = psycopg2.connect(dbname="tepro", user="postgres", password="Evenor2510Tech")
+        conn = psycopg2.connect(dbname="tepro", user="postgres", password="postgres")
         cur = conn.cursor()  
         query = "SELECT sampling_date, insect_type, tracked FROM camaras"
         df_c = pd.read_sql(query, conn)
@@ -356,7 +356,7 @@ def camaras():
 @app.route('/precipitaciones', methods=['GET'])
 def precipitaciones():
     try:
-        conn = psycopg2.connect(dbname="tepro", user="postgres", password="Evenor2510Tech")
+        conn = psycopg2.connect(dbname="tepro", user="postgres", password="postgres")
         cur = conn.cursor()  
         query = "SELECT sampling_date, measurement_value FROM sensores WHERE measurement='Precipitation'"
 
@@ -373,7 +373,7 @@ def precipitaciones():
 @app.route('/xanthomonas', methods=['GET'])
 def xanthomonas():
     try:
-        conn = psycopg2.connect(dbname="tepro", user="postgres", password="Evenor2510Tech")
+        conn = psycopg2.connect(dbname="tepro", user="postgres", password="postgres")
         cur = conn.cursor()  
         query = "SELECT sampling_date, xanthomonas_indice_de_propagacion_prc FROM xanthomonas"
 
@@ -389,7 +389,7 @@ def xanthomonas():
 @app.route('/temperatura', methods=['GET'])
 def temperatura():
     try:
-        conn = psycopg2.connect(dbname="tepro", user="postgres", password="Evenor2510Tech")
+        conn = psycopg2.connect(dbname="tepro", user="postgres", password="postgres")
         cur = conn.cursor()  
         query = "SELECT sampling_date, measurement_value FROM sensores WHERE measurement='HC Air temperature'"
 
@@ -404,7 +404,7 @@ def temperatura():
     
 @app.route('/dataTypes/<equipment_type>', methods=['GET'])
 def get_data_types(equipment_type):
-    conn = psycopg2.connect(dbname="tepro", user="postgres", password="Evenor2510Tech")
+    conn = psycopg2.connect(dbname="tepro", user="postgres", password="postgres")
     cur = conn.cursor()
     if equipment_type.lower() == 'cameras':
         query = "SELECT DISTINCT insect_type FROM camaras"
@@ -445,10 +445,10 @@ def upload_file():
             return jsonify({"error": "Unsupported file format"}), 400
 
         # Usar SQLAlchemy para la conexión a PostgreSQL
-        engine = create_engine('postgresql://postgres:Evenor2510Tech@localhost:5432/tepro')
+        engine = create_engine('postgresql://postgres:postgres@localhost:5432/tepro')
         
         # Validar que las columnas del archivo coincidan con las de la tabla seleccionada
-        conn = psycopg2.connect(dbname="tepro", user="postgres", password="Evenor2510Tech")
+        conn = psycopg2.connect(dbname="tepro", user="postgres", password="postgres")
         cur = conn.cursor()
         cur.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table_name}'")
         columns = [row[0] for row in cur.fetchall()]
@@ -465,7 +465,7 @@ def upload_file():
 @app.route('/api/tables', methods=['GET'])
 def list_tables():
     try:
-        conn = psycopg2.connect(dbname="tepro", user="postgres", password="Evenor2510Tech")
+        conn = psycopg2.connect(dbname="tepro", user="postgres", password="postgres")
         cur = conn.cursor()
         cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'")
         tables = cur.fetchall()
@@ -480,7 +480,7 @@ def list_tables():
 @app.route('/watsat', methods=['GET'])
 def watsat():
     try:
-        conn = psycopg2.connect(dbname="tepro", user="postgres", password="Evenor2510Tech")
+        conn = psycopg2.connect(dbname="tepro", user="postgres", password="postgres")
         cur = conn.cursor()   
         cur.execute('''SELECT fecha
 FROM (

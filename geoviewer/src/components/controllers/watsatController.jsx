@@ -26,25 +26,25 @@ function WatsatPlot() {
                 });
             }
 
-            getPythonData().then(output => {
-                const dates = output.dates;
-                const vi = output.vi;
+            //getPythonData().then(output => {
+            //    const dates = output.dates;
+            //    const vi = output.vi;
             
-                console.log("Fechas:", dates);
-                console.log("Valores VI:", vi);
+            //    console.log("Fechas:", dates);
+            //    console.log("Valores VI:", vi);
 
             // Datos para Plotly
-                const trace = {
-                    x: dates,
-                    y: vi,
-                    mode: 'lines',
-                    name: 'Volumetric'
-                };
+            //    const trace = {
+            //        x: dates,
+            //        y: vi,
+            //        mode: 'lines',
+            //        name: 'Volumetric'
+            //    };
 
-                setData([trace]);
-            }).catch(error => {
-                console.error(error);
-            });
+            //    setData([trace]);
+            //}).catch(error => {
+            //    console.error(error);
+            //});
    
             // Convertir DataFrame a arrays
             

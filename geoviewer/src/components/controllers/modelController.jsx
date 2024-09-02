@@ -590,7 +590,7 @@ class ModelController extends React.Component {
     componentDidMount() {
         // Initialize popover
         var anchorEl = document.getElementById('anchorEl');
-        this.fetchData();
+        //this.fetchData();
 
         // Initialize file reader
         var reader = new FileReader();

@@ -22,57 +22,12 @@ def get_image():
         end_date = request.form['endDate']
         index_type = request.form['indexType']
         
-        if request.form['geojson']:
-            geojson_string = request.form['geojson']
-            geojson = json.loads(geojson_string)
-            features = geojson.get('features', [])
-    
-            # Preparar las nuevas features con geometría
-            new_features = []
-            for feature in features:
-                properties = feature.get('properties', {})
-                x1 = properties.get('x1')
-                y1 = properties.get('y1')
-                x2 = properties.get('x2')
-                y2 = properties.get('y2')
-                
-                # Crear un polígono usando las esquinas inferiores izquierda y superiores derecha
-                if x1 is not None and y1 is not None and x2 is not None and y2 is not None:
-                    geometry = {
-                        "type": "Polygon",
-                        "coordinates": [[
-                            [x1, y1],  # Inferior izquierda
-                            [x1, y2],  # Superior izquierda
-                            [x2, y2],  # Superior derecha
-                            [x2, y1],  # Inferior derecha
-                            [x1, y1]   # Cerrando el polígono
-                        ]]
-                    }
-                    new_features.append({
-                        "type": "Feature",
-                        "geometry": geometry,
-                        "properties": properties
-                    })
-
-                # Crear el nuevo GeoJSON
-            new_geojson = {
-                "type": "FeatureCollection",
-                "features": new_features
-            }
-            
-            print(new_geojson)
-
-            bbox= ee.FeatureCollection(new_geojson)
-
-        elif request.files.get('aoiDataFiles', None):
+        if request.files.get('aoiDataFiles', None):
             file = request.files.get('aoiDataFiles', None)
             # Suponiendo que el archivo es un shapefile o similar que puede ser leído directamente
             gdf = gpd.read_file(file)
             geojson_dict = gdf.__geo_interface__
             bbox = ee.FeatureCollection(geojson_dict['features'])    
-        elif file == None or geojson_string==None:
-            # Si no hay archivo, se debe enviar un error o manejar de otra manera
-            return jsonify({"error": "No geojson or file provided"}), 400
             
         coleccion_sentinel = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")\
             .filterDate(start_date, end_date)\
@@ -141,7 +96,7 @@ def get_image():
         'ffffbf', 'd9ef8b', 'a6d96a', '66bd63', '1a9850', '006837'
         ]
         visualization_parameters = {
-        'min': 0.3, 'max': 0.8,  'palette':  palette
+        'min': -1, 'max': 1,  'palette':  palette
             }
         
         map_id = composite_clipped.getMapId(visualization_parameters)

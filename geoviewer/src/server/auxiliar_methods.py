@@ -521,7 +521,7 @@ def load_db(conn, cur):
     
         df = pd.read_excel('./files/indices.xlsx')
 
-        engine = create_engine('postgresql://postgres:Evenor2510Tech@localhost:5432/tepro')
+        engine = create_engine('postgresql://postgres:postgres@localhost:5432/tepro')
 
         table_name = "indices"
         if_exists = "replace" # Opciones: "fail", "replace", "append"
@@ -934,7 +934,7 @@ def loadd_db():
     apiURI = 'https://api.fieldclimate.com/v2'
     publicKey = '7b831b6ed349787c3f0e69bb63206abd74bedf3aeea5cf41'
     privateKey = '7266006455f0f4ef0cd9a160e6f02e74c5fcc0590c4fe7e1'
-    conn = psycopg2.connect(dbname="tepro", user="postgres", password="Evenor2510Tech")
+    conn = psycopg2.connect(dbname="tepro", user="postgres", password="postgres")
     cur = conn.cursor()   
 
     cur.execute("SELECT extraction_date FROM metadata ORDER BY extraction_date DESC LIMIT 1")
@@ -1093,7 +1093,7 @@ if __name__ == "__main__":
     apiURI = 'https://api.fieldclimate.com/v2'
     publicKey = '7b831b6ed349787c3f0e69bb63206abd74bedf3aeea5cf41'
     privateKey = '7266006455f0f4ef0cd9a160e6f02e74c5fcc0590c4fe7e1'
-    conn = psycopg2.connect(dbname="tepro", user="postgres", password="Evenor2510Tech")
+    conn = psycopg2.connect(dbname="tepro", user="postgres", password="postgres")
     cur = conn.cursor()   
 
     cur.execute("SELECT extraction_date FROM metadata ORDER BY extraction_date DESC LIMIT 1")
