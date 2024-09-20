@@ -103,6 +103,16 @@ class Menu extends React.Component {
                 }
             },
             {
+                name: 'Production model',
+                icon: <Icon>online_prediction</Icon>,
+                color: "orange",
+                callback: () => {
+                    emitter.emit('closeAllController');
+                    emitter.emit('openDitwinController');
+                    this.handleClose();
+                }
+            },
+            {
                 name: 'Configure layers',
                 icon: <Icon>layers</Icon>,
                 color: "yellow darken-1",

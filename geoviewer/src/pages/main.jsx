@@ -21,6 +21,7 @@ import IllnessController from '../components/controllers/illnessController';
 import SyncController from '../components/controllers/syncController';
 import BandController from '../components/controllers/bandController';
 import SearchController from '../components/controllers/searchContoller';
+import DitwinController from '../components/controllers/diTwinController';
 
 class Main extends React.Component {
     render() {
@@ -38,6 +39,7 @@ class Main extends React.Component {
                     <IllnessController/>
                     <ModelController />
                     <SearchController/>
+                    <DitwinController/>
                     <DataController />
                     <ImportController/>
                     <SyncController />

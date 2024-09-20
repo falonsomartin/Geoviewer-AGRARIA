@@ -1,19 +1,20 @@
-/* Written by Ye Liu */
-
-import { Card, CardContent, Icon, IconButton, Slide } from '@material-ui/core';
 import indigo from '@material-ui/core/colors/indigo';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import M from 'materialize-css';
 import React from 'react';
-import Carousel from 'react-elastic-carousel';
 
 import { ACCESS_TOKEN, SERVICE } from '@/config';
+import CadastralSearch from '@components/componentsReact/CadastralSearch';
+import { Slide } from '@mui/material';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
 import emitter from '@utils/events.utils';
 import { checkEmptyObject } from '@utils/method.utils';
 import request from '@utils/request.utils';
-import Plot from 'react-plotly.js';
+import { Icon, IconButton, Typography } from '@material-ui/core';
 
 import '@styles/dataController.style.css';
+import MyComponent from '../componentsJS/MyComponent';
 
 const theme = createTheme({
     palette: {
@@ -31,7 +32,7 @@ const styles = {
         borderRadius: 4,
         minWidth: 350,
         margin: 0,
-        width:900,
+        width:'auto',
         zIndex: 900
     },
     header: {
@@ -85,6 +86,10 @@ const styles = {
     },
     resultTable: {
         boxShadow: 'none'
+    },
+    inputBox: {
+        width: 240,
+        marginTop: 15
     },
     uploadBoxInput: {
         display: 'none'
@@ -167,7 +172,7 @@ const styles = {
     }
 };
 
-class ModelController extends React.Component {
+class DitwinController extends React.Component {
     state = {
         open: false,
         resultUnwrap: false,
@@ -590,7 +595,7 @@ class ModelController extends React.Component {
     componentDidMount() {
         // Initialize popover
         var anchorEl = document.getElementById('anchorEl');
-        this.fetchData();
+        //this.fetchData();
 
         // Initialize file reader
         var reader = new FileReader();
@@ -617,7 +622,7 @@ class ModelController extends React.Component {
         });
 
         // Bind event listeners
-        this.openModelControllerListener = emitter.addListener('openModelController', () => {
+        this.openDitwinControllerControllerListener = emitter.addListener('openDitwinController', () => {
             this.setState({
                 open: true
             });
@@ -643,88 +648,31 @@ class ModelController extends React.Component {
                 }
             });
         });
-    }
 
-    fetchData = () => {
-        fetch('http://localhost:5003/watsat', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log(data.output)
-            this.processWatsatData(data.output);
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-            emitter.emit('showSnackbar', 'error', 'Error: Something happened extracting the data.');
+        this.moveCapaListener = emitter.addListener('moveCapa', () => {
+            this.moveCapa();
         });
     }
 
-    processWatsatData = (data) => {
-        const trace = {
-            type: 'scatter', // 'scatter' se usa para gráficos de línea
-            mode: 'lines',
-            x: data.map(item => new Date(item.fecha)),
-            y: data.map(item => item.vi), // Asume que 'vi' es el campo correcto para contenido volumétrico de agua
-            name: 'Contenido Volumétrico de Agua',
-        };
+    handleDataSubmit = (data) => {
+        this.setState({capa: data})
+        console.log("Datos recibidos en SearchController:", data);
+        emitter.emit('moveCapa', this.state.capa);
+        // Puedes manejar los datos como desees aquí
+    };
 
-        this.setState(({
-            watsatData: [trace],
-            loading: false // Ajusta el estado de carga según sea necesario
-        }));
-    }
+    moveCapa = () => {
+        var capa = this.state.capa
+        this.setState({ movedCapa: capa });
+        console.log(this.state.movedCapa)
+        console.log(typeof this.state.movedCapa)
 
-    processData = (data) => {
-        const dates = data.map(item => new Date(item.sampling_date));
-        const insectTypes = [...new Set(data.flatMap(item => Object.keys(item).filter(key => key !== 'sampling_date' && item[key] !== null)))];
-        const traces = insectTypes.map((type) => {
-            const y = data.map(item => item[type] || 0);
-            return {
-                type: 'bar',
-                name: type,
-                x: dates,
-                y,
-            };
-        });
-
-        this.setState({ traces, loading: false });
-    }
-
-    processTemperatureData = (data) => {
-        const trace = {
-            type: 'scatter', 
-            mode: 'lines',
-            x: data.map(item => new Date(item.sampling_date)),
-            y: data.map(item => item.measurement_value),
-            name: 'Temperatura del Aire HC',
-        };
-
-        this.setState(({
-            temperatureData: [trace],
-            loading: false // Mantiene el estado de carga si hay más datos por cargar
-        }));
-    }
-
-    processPrecipitationData = (data) => {
-        const trace = {
-            type: 'scatter',
-            mode: 'lines',
-            x: data.map(item => new Date(item.sampling_date)),
-            y: data.map(item => item.measurement_value),
-            name: 'Precipitación'
-        };
-
-        this.setState({ precipitationData: [trace], loading: false });
     }
 
 
     componentWillUnmount() {
         // Remove event listeners
-        emitter.removeListener(this.openModelControllerListener);
+        emitter.removeListener(this.openSearchControllerListener);
         emitter.removeListener(this.closeAllControllerListener);
         emitter.removeListener(this.addPointListener);
         emitter.removeListener(this.updatePointListener);
@@ -737,7 +685,6 @@ class ModelController extends React.Component {
     }
 
     render() {
-        const { watsatData, layoutWatsat } = this.state;
         
         return (
             <ThemeProvider theme={theme}>
@@ -745,20 +692,25 @@ class ModelController extends React.Component {
                     <Card style={styles.root}>
                         {/* Card header */}
                         <CardContent style={styles.header}>
+
                         <IconButton style={styles.closeBtn} aria-label="Close" onClick={this.handleCloseClick}>
                                 <Icon fontSize="inherit">chevron_right</Icon>
                             </IconButton>
+                        &nbsp;&nbsp;    
+                        <Typography variant="h5" component="div">
+                        Modelo de producción
+                        </Typography>
+                        <MyComponent/>
 
-                        <Carousel enableSwipe={false}>
-                        <Plot data={watsatData} layout={layoutWatsat} />
-                        </Carousel>
+
 
                         </CardContent>
                     </Card>
                 </Slide>
-            </ThemeProvider >
+
+                                    </ThemeProvider >
         );
     }
 }
 
-export default ModelController;
+export default DitwinController;

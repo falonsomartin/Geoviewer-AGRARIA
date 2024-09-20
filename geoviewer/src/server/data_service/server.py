@@ -9,12 +9,17 @@ from datetime import datetime, timedelta
 import requests
 from ria import RIA
 import time
+import numpy as np
 from sqlalchemy import create_engine
 
 from requests.auth import AuthBase
 from Crypto.Hash import HMAC
 from Crypto.Hash import SHA256
 from datetime import datetime
+
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 apiURI = 'https://apidev.fieldclimate.com/v2'
 # HMAC Authentication credentials
@@ -40,6 +45,19 @@ class AuthHmacMetos(AuthBase):
 
 app = Flask(__name__)
 CORS(app) 
+
+file_path = 'geoviewer\src\server\data_service\esult.xlsx'  # Cambia la ruta al archivo
+dataset = pd.read_excel(file_path)
+
+# Separar las características y la variable objetivo
+X = dataset.drop(columns=['PROD(LN)', 'PRODUCIÓN ( t ALMENDRA/ha)', 'RENDIMIENTO(t PEPITA/ha)', 'UFP ( TOTALES/HA)', 'UFN ( TOTALES/HA)', 'UFK ( TOTALES/HA)', 'HUM_max', 'PREC_acum', 'RIEGO(LN)', 'PREC_acum(LN)', 'RIEGO APORTADO ( M3TOTAL/HA)', 'HUM_min', 'PREC_med(LN)'])
+y = dataset['PRODUCIÓN ( t ALMENDRA/ha)']
+
+
+# Entrenamos un modelo de regresión lineal
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=42)
+linear_model = LinearRegression()
+linear_model.fit(X_train, y_train)
 
 def fetch_data_for_sensor(sensor_id, start_date, end_date):
     # Esta función hace la llamada a la API para un intervalo dado
@@ -126,6 +144,23 @@ def update_camera(from_d,to_d):
                   data_ins[fecha] = insectos
     return data_ins
 
+@app.route('/predict', methods=['POST'])
+def predict():
+    try:
+        data = request.get_json()  # Recibir los datos en formato JSON
+        input_data = np.array([[
+            data['ETO_med'], data['ETO_min'], data['ETO_max'], data['PREC_med'], data['RAD_med'], data['HUM_med'],
+            data['Tmed'], data['Tmin'], data['Tmax'], data['UFK(LN)'], data['UFP(LN)'], data['UFN(LN)'],
+            data['ZONA_VULNERABLE_A_NITROGENO'], data['RIEGO_DEFICITARIO'], data['TEXTURA']
+        ]])
+
+        # Realizar predicciones con el modelo entrenado
+        prediction = linear_model.predict(input_data)
+
+        return jsonify({'prediction': float(prediction[0])}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
 @app.route('/run-script', methods=['POST'])
 def run_script():
     try:
