@@ -43,6 +43,7 @@ class Canvas extends React.Component {
     flyToGeometry(map, geometry) {
         const type = geometry.type;
         let coordinates;
+        console.log(geometry)
 
         if (type === 'FeatureCollection') {
             const firstFeature = geometry.features[0];
@@ -53,14 +54,16 @@ class Canvas extends React.Component {
             coordinates = geometry.coordinates;
         }
 
-        if (geometry.features[0].geometry.type === 'Polygon') {
+        if (geometry.type === 'Polygon') {
+            console.log(coordinates[0][0])
+            console.log(coordinates[0][0][1], coordinates[0][0][0])
             this.state.map.flyTo({
-                center: coordinates[0][0],
+                center: [coordinates[0][0][0], coordinates[0][0][1]],
                 zoom: 15
             });
-        } else if (geometry.features[0].geometry.type === 'Point') {
+        } else if (geometry.type === 'Point') {
             this.state.map.flyTo({
-                center: coordinates,
+                center: [coordinates[0][0], coordinates[0][1]],
                 zoom: 17
             });
         }
@@ -165,8 +168,8 @@ class Canvas extends React.Component {
         const map = new mapboxgl.Map({
             container: this.mapContainer.current,
             style: Object.values(mapStyles)[0],
-            center: [23.0000, -26.0000],
-            zoom: 4.75,
+            center: [-4.835985, 37.701896],
+            zoom: 7,
             antialias: true
         });
 
@@ -442,6 +445,12 @@ class Canvas extends React.Component {
                 'raster-opacity': 0.8  // Opacidad de la capa de ráster
             }
         });
+        const polygon = movedURL[3]; // Asumiendo que contiene el GeoJSON
+        if (polygon && polygon.type === 'Polygon') {
+            this.flyToGeometry(this.state.map, polygon)
+        } else {
+            console.error('Invalid GeoJSON Polygon in movedURL[3]');
+        }
         console.log(this.state.url);
     };
     

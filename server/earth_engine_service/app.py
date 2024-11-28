@@ -149,7 +149,8 @@ def get_boundaries(numbers, recinto_num):
     map_id = filtered_polygon.getMapId(erosion_viz_params)
     
     
-    return[map_id['tile_fetcher'].url_format, erosion_viz_params, 'Parcela_'+str(numbers[0])+str(numbers[1])+str(numbers[1])+str(recinto_num)]
+    
+    return[map_id['tile_fetcher'].url_format, erosion_viz_params, 'Parcela_'+str(numbers[0])+str(numbers[1])+str(numbers[1])+str(recinto_num), filtered_polygon.geometry().getInfo()]
 
 @app.route('/api/watsat', methods=['GET'])
 def watsat():
@@ -501,11 +502,12 @@ def get_rusle():
             erosion_viz_params = {'min': 0, 'max': 10, 'palette': ['#490eff', '#12f4ff', '#12ff50', '#e5ff12', '#ff4812']}
             
             # Generar mapa
-            map_id = erosion.getMapId(erosion_viz_params)
-            
+            map_id = erosion.getMapId(erosion_viz_params) 
+            bounds=aoi.geometry().getInfo()
+            print(bounds)
             return jsonify({
                 "success": True,
-                "output": [map_id['tile_fetcher'].url_format, erosion_viz_params, 'Erosion_Result']
+                "output": [map_id['tile_fetcher'].url_format, erosion_viz_params, 'Erosion_Result', bounds]
             }), 200
 
     except Exception as e:
