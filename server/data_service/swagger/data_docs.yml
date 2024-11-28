@@ -1,0 +1,23 @@
+# users_docs.yml
+paths:
+  /users:
+    get:
+      tags:
+        - User
+      summary: Retrieve a list of users
+      description: Returns a list of users from the database, including their basic authentication status.
+      responses:
+        200:
+          description: A successful response, indicating that the users were retrieved and basic authentication information is included in the response header.
+          headers:
+            WWW-Authenticate:
+              type: string
+              description: Prompts the client for username and password.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Password does not match'

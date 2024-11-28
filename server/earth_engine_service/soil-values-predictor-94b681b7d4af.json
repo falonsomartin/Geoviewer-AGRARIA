@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "soil-values-predictor",
+  "private_key_id": "94b681b7d4af4832584e20321b983be9f3a19d6a",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDC+1FZkLmlCODN\ng+x31XXaJ3TC5RfAnzsRpnvrVpjZLcG6HXB665326wHdxtLCRd5BdZt6DGNQs1Ua\n++zWGAPCKPRMvLxSfobtEs7F8Z+39rKEonwRl15xsGFScKHlnVkiva8ypUGF4E+u\nC/lkwwVa3UtJxd+kLtSrecnvYRLXu6lyk1LoYuLP4JM6sDftbfWNYLkBSUveeieT\nDe5ERYqz62xPcIYx4EM4dxuKlbHNJIKpoT0YipCL6bUzBb9+h5qJyVAyxT6SG4KP\nVMoIwLstWuGSKNAEs+c77xNVFZUeX7w2B5bVJiifxBxN5FJjJPk47m7Ul4DN6TNS\nug8M8Qg3AgMBAAECggEAHgyFOPxo39pCaunN45nuE7TI9dBAnNrtS4cQyfAKlk3K\n8VfgIdF2ArutCfS+PlpuKkBpuaF3HNTGZOY2VbhVu/J70+eyTjRZruebHj5ikwNd\n97rizAM79uFr3jyldrGNLyF0gqWdN3ieTwBhavnzNVGtbK0mDjN5awPV7yJSuRRZ\nwN+G9Yst50sV94JUF7hZ0VBtimVTmFXT+jEljjauSSYhKqR9E3eLD3Soe3yn8mLK\n7z2Uln2gT2Jnqq0ESAxN7D8IhHDE2t9BbI5tqfwLvhDXlcpZqC28o+akN5xSr12f\nthKc6V5XwFT1PWoCN0DjaeekS+L0UjlKdk+YxF0gIQKBgQDuxyvkk5qoKqvr56tu\nCmbYrEKLGNcv9Ka+VQ8dr2WIVNK1hV/VrSI4mNrRzLk3L4EKVIJup9H84Nfm025R\n8S+fZ34otP6vQbQgTri2TqtoPFlxChjEAoNIbzXwYH7O6CUpS+42hAEH4zvwbRvT\nYCYO169iMQF6HDFu2PCeqoEERQKBgQDRC3xSHmKNhDroWTIeSiBRqMqqipdEbPvB\nPq00kIJqzbLDI4wVZhuogc9jY39RyAzG2u/edSA5Tr1GLzaHeuBlk1CcGUT0m6Eq\nmJ3YgcVJW4wyAsrQbkhs4E8Vafr8qgECjFwDPrYu3Nsqs+Nfctjt9X8rxsk4i9wl\n0Qc03zIoSwKBgQC4sf0kqHvXmnIzXpa+3nLhJJWwTD2fDYmw7dBscNCDnMEDwa/4\ncxxmVO3lnIqjwi35VJczisIl7bFzDZZm8b2Zeo8eY6og3By9ZMcB1WZGkW/JvTqc\n2yi7bbJ2Rd2wo+aiw+X16zN063LgrTT50oR9tJ4nwKpYztf52vp8cHytVQKBgF/v\nIXKeNyQy1sXiiTmVUxemmruBNsJUMYURunMxDmjtVWhwW81GOtMuH3rBIqDpadOo\njgRNRCiIlhwrdp7eKTT0Uj4Q6rBG68OcnnPJujxcIw6gcWsN8XblyeVN6b0iV6xP\ntbpXgUwoVvxV6bbYAe3SiDYS2C13IeTI9MGy3FXZAoGBAKXjEDFJiUNDMUmKbG7V\nAEnyjIUodhxbugshkIk1V2ErIpMgj0QxdX6GR5ed+HplV9qxwlCS7QXAelqiepXB\nQ2qgToa8ZYVyIAMAIk8m2zYrj9iqUgMquSB+xbmaPwr9p6B7rLHDcf/79WSY2drt\nWRAxrr8+Ee58kfCRde0pl/c5\n-----END PRIVATE KEY-----\n",
+  "client_email": "evenor-tech@soil-values-predictor.iam.gserviceaccount.com",
+  "client_id": "108608468519347027040",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/evenor-tech%40soil-values-predictor.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
