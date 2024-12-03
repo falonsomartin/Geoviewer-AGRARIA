@@ -9,8 +9,6 @@ import { Slide } from '@mui/material';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import emitter from '@utils/events.utils';
-import { checkEmptyObject } from '@utils/method.utils';
-import request from '@utils/request.utils';
 import { Icon, IconButton, Typography } from '@material-ui/core';
 
 import '@styles/dataController.style.css';

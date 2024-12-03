@@ -15,17 +15,24 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.preprocessing import StandardScaler
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True, origins=["http://localhost:3000"])
 ria = RIA()
+np.random.seed(42)
 
 result=pd.read_csv('server\earth_engine_service\lmond_test_final_agraria.csv', sep=';')
 X = result.drop(columns=['RENDIMIENTO(t PEPITA/ha)'])
 y = result['RENDIMIENTO(t PEPITA/ha)']
+variables_a_eliminar = ['Evaporation', 'Precipitation_Sum', 'Precipitation_mean']
+X = X.drop(columns=variables_a_eliminar, errors='ignore')
+# Escalar las características para modelos sensibles a magnitudes
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
 
 # Dividir el dataset en conjuntos de entrenamiento y prueba
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
 linear_model = LinearRegression()
 linear_model.fit(X_train, y_train)
 
@@ -263,12 +270,8 @@ def predict():
         ufk = data['ufk']
         start_date = data['startDate']  # Opcional, se obtiene del JSON
         end_date = data['endDate'] 
-        temp_max = data.get('tempMax', None)
         temp_mean = data.get('tempMean', None)
-        temp_min = data.get('tempMin', None)
         precip_max = data.get('precMax', None)
-        precip_sum = data.get('precSum', None)
-        precip_mean = data.get('precMed', None)
         # Crear array con datos del usuario
         user_data = np.array([riego_aportado, ufn, ufp, ufk])
 
@@ -277,8 +280,6 @@ def predict():
         gdf = gpd.read_file(shapefile_path)
         bounds = gdf.unary_union.bounds
         roi = ee.Geometry.Rectangle([bounds[0], bounds[1], bounds[2], bounds[3]])
-        start_date = '2016-02-01'
-        end_date = '2016-05-31'
         # Obtener datos de Google Earth Engine y ordenar las bandas
         landsat = (ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
                    .filterDate(start_date, end_date)
@@ -310,19 +311,16 @@ def predict():
 
         landsat_indices = landsat.map(calculate_indices)
         variables = None
-        if temp_max != None:
+        if temp_mean != None:
             variables = (
                 ee.Image("OpenLandMap/SOL/SOL_CLAY-WFRACTION_USDA-3A1A1A_M/v02").select('b10').rename('Clay_Content')
                 .addBands(landsat_indices.select('EVI').mean().rename('EVI'))
                 .addBands(ee.Image("USGS/SRTMGL1_003").select('elevation').rename('Elevation'))
-                .addBands(ee.ImageCollection("ECMWF/ERA5_LAND/HOURLY").select('potential_evaporation').filterDate(start_date, end_date).reduce(ee.Reducer.mean()).rename('Evaporation'))
                 .addBands(ee.ImageCollection("MODIS/061/MOD15A2H").filterDate(start_date, end_date).select('Fpar_500m').mean().rename('FAPAR'))
                 .addBands(ee.ImageCollection("MODIS/061/MOD15A2H").filterDate(start_date, end_date).select('Lai_500m').mean().rename('LAI'))
                 .addBands(landsat_indices.select('MSI').mean().rename('MSI'))
                 .addBands(landsat_indices.select('NDVI').mean().rename('NDVI'))
                 .addBands(ee.ImageCollection("UCSB-CHG/CHIRPS/DAILY").filterDate(start_date, end_date).reduce(ee.Reducer.max()).select('precipitation_max').rename('Precipitation_Max'))
-                .addBands(ee.ImageCollection("UCSB-CHG/CHIRPS/DAILY").filterDate(start_date, end_date).reduce(ee.Reducer.sum()).select('precipitation_sum').rename('Precipitation_Sum'))
-                .addBands(ee.ImageCollection("UCSB-CHG/CHIRPS/DAILY").filterDate(start_date, end_date).reduce(ee.Reducer.mean()).select('precipitation_mean').rename('Precipitation_Mean'))
                 .addBands(landsat_indices.select('SAVI').mean().rename('SAVI'))
                 .addBands(ee.Image.constant(302.702377).rename('TempMax'))
                 .addBands(ee.Image.constant(287.556804).rename('TempMean'))
@@ -333,38 +331,31 @@ def predict():
                 ee.Image("OpenLandMap/SOL/SOL_CLAY-WFRACTION_USDA-3A1A1A_M/v02").select('b10').rename('Clay_Content')
                 .addBands(landsat_indices.select('EVI').mean().rename('EVI'))
                 .addBands(ee.Image("USGS/SRTMGL1_003").select('elevation').rename('Elevation'))
-                .addBands(ee.ImageCollection("ECMWF/ERA5_LAND/HOURLY").select('potential_evaporation').filterDate(start_date, end_date).reduce(ee.Reducer.mean()).rename('Evaporation'))
                 .addBands(ee.ImageCollection("MODIS/061/MOD15A2H").filterDate(start_date, end_date).select('Fpar_500m').mean().rename('FAPAR'))
                 .addBands(ee.ImageCollection("MODIS/061/MOD15A2H").filterDate(start_date, end_date).select('Lai_500m').mean().rename('LAI'))
                 .addBands(landsat_indices.select('MSI').mean().rename('MSI'))
                 .addBands(landsat_indices.select('NDVI').mean().rename('NDVI'))
                 .addBands(ee.Image.constant(precip_max).rename('Precipitation_Max'))
-                .addBands(ee.Image.constant(precip_sum).rename('Precipitation_Sum'))
-                .addBands(ee.Image.constant(precip_mean).rename('Precipitation_Mean'))
                 .addBands(landsat_indices.select('SAVI').mean().rename('SAVI'))
                 .addBands(ee.Image.constant(302.702377).rename('TempMax'))
                 .addBands(ee.Image.constant(287.556804).rename('TempMean'))
                 .addBands(ee.Image.constant(273.879806).rename('TempMin'))
             )
-        if precip_max == None and temp_max==None:
-                        variables = (
+        if precip_max == None and temp_mean==None:
+            variables = (
                 ee.Image("OpenLandMap/SOL/SOL_CLAY-WFRACTION_USDA-3A1A1A_M/v02").select('b10').rename('Clay_Content')
                 .addBands(landsat_indices.select('EVI').mean().rename('EVI'))
                 .addBands(ee.Image("USGS/SRTMGL1_003").select('elevation').rename('Elevation'))
-                .addBands(ee.ImageCollection("ECMWF/ERA5_LAND/HOURLY").select('potential_evaporation').filterDate(start_date, end_date).reduce(ee.Reducer.mean()).rename('Evaporation'))
                 .addBands(ee.ImageCollection("MODIS/061/MOD15A2H").filterDate(start_date, end_date).select('Fpar_500m').mean().rename('FAPAR'))
                 .addBands(ee.ImageCollection("MODIS/061/MOD15A2H").filterDate(start_date, end_date).select('Lai_500m').mean().rename('LAI'))
                 .addBands(landsat_indices.select('MSI').mean().rename('MSI'))
                 .addBands(landsat_indices.select('NDVI').mean().rename('NDVI'))
                 .addBands(ee.ImageCollection("UCSB-CHG/CHIRPS/DAILY").filterDate(start_date, end_date).reduce(ee.Reducer.max()).select('precipitation_max').rename('Precipitation_Max'))
-                .addBands(ee.ImageCollection("UCSB-CHG/CHIRPS/DAILY").filterDate(start_date, end_date).reduce(ee.Reducer.sum()).select('precipitation_sum').rename('Precipitation_Sum'))
-                .addBands(ee.ImageCollection("UCSB-CHG/CHIRPS/DAILY").filterDate(start_date, end_date).reduce(ee.Reducer.mean()).select('precipitation_mean').rename('Precipitation_Mean'))
                 .addBands(landsat_indices.select('SAVI').mean().rename('SAVI'))
                 .addBands(ee.Image.constant(302.702377).rename('TempMax'))
                 .addBands(ee.Image.constant(287.556804).rename('TempMean'))
                 .addBands(ee.Image.constant(273.879806).rename('TempMin'))
             )
-            
 
         # Reducir los valores de las bandas en la ROI
         precip_values = variables.reduceRegion(
@@ -376,17 +367,19 @@ def predict():
 
         # Crear un array con los valores obtenidos de Google Earth Engine
         earth_engine_data = np.array([
-            precip_values['Clay_Content'], precip_values['EVI'], precip_values['Elevation'], precip_values['Evaporation'],
+            precip_values['Clay_Content'], precip_values['EVI'], precip_values['Elevation'],
             precip_values['FAPAR'], precip_values['LAI'], precip_values['MSI'], precip_values['NDVI'],
-            precip_values['Precipitation_Max'], precip_values['Precipitation_Sum'], precip_values['Precipitation_Mean'],
+            precip_values['Precipitation_Max'],
             precip_values['SAVI'], precip_values['TempMax'], precip_values['TempMean'], precip_values['TempMin']
         ])
 
         # Concatenar los arrays en el orden especificado
-        final_array = np.concatenate([user_data, earth_engine_data])
-
+        final_array = np.concatenate([user_data, earth_engine_data]).reshape(1, -1)
+        scaler = StandardScaler()
+        scaler.fit(X)  # Ajustar el escalador con los datos originales de entrenamiento
+        final_array_scaled = scaler.transform(final_array)
         # Realizar predicción con el modelo lineal
-        prediction = linear_model.predict(final_array.reshape(1, -1))[0]
+        prediction = linear_model.predict(final_array_scaled)[0]
         
         # Calcular métricas de rendimiento del modelo en datos de entrenamiento
         y_train_pred = linear_model.predict(X_train)
@@ -406,6 +399,7 @@ def predict():
 
         return jsonify({'prediction': response}), 200
     except Exception as e:
+        print(str(e))
         return jsonify({"error": str(e)}), 500
      
 @app.route('/api/rusle', methods=['POST'])

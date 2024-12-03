@@ -7,7 +7,6 @@ function CadastralSearch({ onSubmit }) {
     const [provincia, setProvincia] = useState('');
     const [municipio, setMunicipio] = useState('');
     const [poligono, setPoligono] = useState('');
-    const [cadastralRef, setCadastralRef] = useState('');
     const [recintoNum, setRecintoNum] = useState('');
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(false);

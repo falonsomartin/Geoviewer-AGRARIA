@@ -37,7 +37,7 @@ const styles = {
 
 class ModelController extends React.Component {
     state = {
-        open: true,
+        open: false,
         data: [], // Datos del backend
         loading: true
     };
@@ -134,7 +134,7 @@ class ModelController extends React.Component {
     };
 
     render() {
-        const { data, loading } = this.state;
+        const { loading } = this.state;
 
         // Generar trazas y layout para Plotly
         const { traces, layout } = this.processPlotData();

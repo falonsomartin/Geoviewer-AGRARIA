@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Box from '@mui/material/Box';
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
@@ -211,7 +211,6 @@ export default function HorizontalLinearStepperData({ onSubmit }) {
               sx={{ width: 200, margin: 1 }}
             >
               <MenuItem value="Sensors">Sensors</MenuItem>
-              <MenuItem value="Cameras">Cameras</MenuItem>
             </Select>
           </Box>
         );

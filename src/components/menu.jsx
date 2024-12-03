@@ -70,16 +70,6 @@ class Menu extends React.Component {
                 }
             },
             {
-                name: 'Importar Datos',
-                icon: <Icon>import_export</Icon>,
-                color: "pink",
-                callback: () => {
-                    emitter.emit('closeAllController');
-                    emitter.emit('openImportController')
-                    this.handleClose();
-                }
-            },
-            {
                 name: 'Seleccionar Datos',
                 icon: <Icon>insert_chart</Icon>,
                 color: "blue",
@@ -121,7 +111,7 @@ class Menu extends React.Component {
                 }
             },
             {
-                name: 'Buscar Parcela crop',
+                name: 'Buscar Parcela',
                 icon: <Icon>search</Icon>,
                 color: "leaf green",
                 callback: () => {
@@ -144,7 +134,7 @@ class Menu extends React.Component {
 
             {
 
-                name: 'Visualizador de capas',
+                name: 'Visualizador de Capas',
 
                 icon: <Icon>grass</Icon>,
 
@@ -186,7 +176,7 @@ class Menu extends React.Component {
 
             {
 
-                name: 'Configure layers',
+                name: 'Configurador de Capas',
 
                 icon: <Icon>layers</Icon>,
 

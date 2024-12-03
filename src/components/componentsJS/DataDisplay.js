@@ -83,7 +83,7 @@ function DataDisplay({ data, onBack }) {
                         Última Convergencia: {data.convergencia && data.convergencia.cat_fechaultimaconv ? new Date(data.convergencia.cat_fechaultimaconv).toLocaleDateString() : 'No disponible'}
                     </Typography>
                     <Typography variant="body2">
-                        Fecha del Vuelo: {data.vuelo && data.vuelo.fecha_vuelo || 'No disponible'}
+                        Fecha del Vuelo: {(data.vuelo && data.vuelo.fecha_vuelo) || 'No disponible'}
                     </Typography>
                     </div>
                 </CardContent>

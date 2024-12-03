@@ -39,14 +39,10 @@ const MyComponent = () => {
     const [endDate, setEndDate] = useState('');
 
     // Precipitation states
-    const [precMed, setPrecMed] = useState('');
     const [precMax, setPrecMax] = useState('');
-    const [precSum, setPrecSum] = useState('');
 
     // Temperature states
-    const [tempMax, setTempMax] = useState('');
     const [tempMean, setTempMean] = useState('');
-    const [tempMin, setTempMin] = useState('');
 
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
@@ -66,12 +62,8 @@ const MyComponent = () => {
             ufn: parseFloat(ufn),
             ufp: parseFloat(ufp),
             ufk: parseFloat(ufk),
-            precMed: parseFloat(precMed),
             precMax: parseFloat(precMax),
-            precSum: parseFloat(precSum),
-            tempMax: parseFloat(tempMax),
             tempMean: parseFloat(tempMean),
-            tempMin: parseFloat(tempMin),
             startDate: startDate ? new Date(startDate).toISOString() : null, // Formato ISO
             endDate: endDate ? new Date(endDate).toISOString() : null,       // Formato ISO    
         };
@@ -182,28 +174,10 @@ const MyComponent = () => {
                         <Grid item xs={12} sm={6} md={4}>
                             <TextField
                                 fullWidth
-                                label="Precipitación Media"
-                                variant="outlined"
-                                value={precMed}
-                                onChange={e => setPrecMed(e.target.value)}
-                            />
-                        </Grid>
-                        <Grid item xs={12} sm={6} md={4}>
-                            <TextField
-                                fullWidth
                                 label="Precipitación Máxima"
                                 variant="outlined"
                                 value={precMax}
                                 onChange={e => setPrecMax(e.target.value)}
-                            />
-                        </Grid>
-                        <Grid item xs={12} sm={6} md={4}>
-                            <TextField
-                                fullWidth
-                                label="Precipitación Suma"
-                                variant="outlined"
-                                value={precSum}
-                                onChange={e => setPrecSum(e.target.value)}
                             />
                         </Grid>
                     </Grid>
@@ -216,30 +190,13 @@ const MyComponent = () => {
                         <Grid item xs={12} sm={6} md={4}>
                             <TextField
                                 fullWidth
-                                label="Temperatura Máxima"
-                                variant="outlined"
-                                value={tempMax}
-                                onChange={e => setTempMax(e.target.value)}
-                            />
-                        </Grid>
-                        <Grid item xs={12} sm={6} md={4}>
-                            <TextField
-                                fullWidth
                                 label="Temperatura Media"
                                 variant="outlined"
                                 value={tempMean}
                                 onChange={e => setTempMean(e.target.value)}
                             />
                         </Grid>
-                        <Grid item xs={12} sm={6} md={4}>
-                            <TextField
-                                fullWidth
-                                label="Temperatura Mínima"
-                                variant="outlined"
-                                value={tempMin}
-                                onChange={e => setTempMin(e.target.value)}
-                            />
-                        </Grid>
+
                     </Grid>
                 </TabPanel>
 

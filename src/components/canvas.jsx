@@ -13,7 +13,6 @@ import { ACCESS_TOKEN } from '@/config';
 import '@styles/map.style.css';
 import emitter from '@utils/events.utils';
 import { mapStyles } from '@utils/map.utils';
-import RequestForm from './componentsJS/RequestForm';
 
 const styles = {
     root: {

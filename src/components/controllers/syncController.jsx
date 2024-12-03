@@ -9,9 +9,6 @@ import { Backdrop , CircularProgress, Typography} from '@material-ui/core';
 
 import { ACCESS_TOKEN } from '@/config';
 import emitter from '@utils/events.utils';
-import { checkEmptyObject } from '@utils/method.utils';
-import request from '@utils/request.utils';
-
 import '@styles/dataController.style.css';
 
 
@@ -314,7 +311,7 @@ class SyncController extends React.Component {
                 <Backdrop style={styles.backdrop} open={this.state.loading}>
         <CircularProgress color="inherit" />
         <Typography variant="h6" tyle={styles.progressText}>
-          Sincronizando la base da datos...
+          Sincronizando la base de datos...
         </Typography>
       </Backdrop>
             </ThemeProvider >

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Card, CardContent, Icon, IconButton, Slide, Typography } from '@material-ui/core';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import Plot from 'react-plotly.js';
 import emitter from '@utils/events.utils'; // Asegúrate de importar el manejador de eventos
 import IllnessModelStepper from '../componentsJS/IllnessStepperData';
 
@@ -35,7 +34,7 @@ const styles = {
 
 class IllnessController extends React.Component {
     state = {
-        open: true,
+        open: false,
         data: [],
         loading: true
     };
@@ -94,7 +93,7 @@ class IllnessController extends React.Component {
     }
 
     render() {
-        const { open, loading } = this.state;
+        const { open } = this.state;
 
         return (
             <ThemeProvider theme={theme}>
